@@ -1,0 +1,65 @@
+version: '3.8'
+
+volumes:
+  mongo1: 
+  mongo2: 
+  mongo3:
+  typesense-data:
+
+services:
+  mongo1:
+    image: mongo:5
+    container_name: mongo1
+    command: ["--replSet", "rep", "--port", "30001"]
+    ports:
+      - 30001:30001
+    healthcheck:
+      test: test $$(echo "rs.initiate({_id:'rep',members:[{_id:0,host:\"mongo1:30001\"},{_id:1,host:\"mongo2:30002\"},{_id:2,host:\"mongo3:30003\"}]}).ok || rs.status().ok" | mongo --port 30001 --quiet) -eq 1
+      interval: 10s
+      start_period: 5s
+      retries: 3
+    volumes:
+      - mongo1:/data/db
+
+  mongo2:
+    image: mongo:5
+    container_name: mongo2
+    command: ["--replSet", "rep", "--port", "30002"]
+    ports:
+      - 30002:30002
+    volumes:
+      - mongo2:/data/db
+
+  mongo3:
+    image: mongo:5
+    container_name: mongo3
+    command: ["--replSet", "rep", "--port", "30003"]
+    ports:
+      - 30003:30003
+    volumes:
+      - mongo3:/data/db
+
+  typesense:
+    image: typesense/typesense:0.23.1
+    container_name: typesense
+    entrypoint: sh -c "/opt/typesense-server --data-dir /data --api-key=password --enable-cors"
+    volumes:
+      - typesense-data:/data
+    ports:
+      - "8108:8108"
+    expose:
+      - 8108
+    
+  typesense-connector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: typesense-connector
+    env_file:
+      - .env
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+      - typesense

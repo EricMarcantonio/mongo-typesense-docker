@@ -1,0 +1,18 @@
+{
+	"name": "mongo-typesense-docker",
+	"version": "1.0.0",
+	"main": "bin/index.js",
+	"repository": "https://github.com/EricMarcantonio/mongo-typesense-docker.git",
+	"author": "Eric Marcantonio <eric11marcantonio@gmail.com>",
+	"license": "MIT",
+	"devDependencies": {
+		"typescript": "^4.9.4"
+	},
+	"dependencies": {
+		"mongodb": "^4.13.0",
+		"typesense": "^1.4.6"
+	},
+	"scripts": {
+		"build": "tsc"
+	}
+}
